@@ -1,0 +1,1260 @@
+<?php
+session_start();
+include_once '../classes/startup.php';
+
+$fromEmail = "pushpendra639263@gmail.com";
+$fromName = "Your Name"; 
+
+if(isset($_GET['selected_emails'])) {
+    $selectedEmails = urldecode($_GET['selected_emails']);
+    $emailAddresses = explode(',', $selectedEmails);
+}
+
+if(isset($emailAddresses)) {
+    foreach ($emailAddresses as $email) {
+        echo $email . "<br>"; 
+    }
+}
+
+if(isset($_POST['btn_submit'])) {
+    $emailBody = isset($_POST['email']) ? $_POST['email'] : '';
+
+    if (empty($emailBody)) {
+        echo '<script>alert("Please enter an email message.");</script>';
+    } else {
+       
+        $fileData = $fileName = $fileType = "";
+        $isFileUploaded = false;
+
+        
+        if(isset($_FILES['file']) && $_FILES['file']['error'] == 0) {
+            $allowedTypes = array('image/jpeg', 'image/png', 'image/gif');
+            $fileTmpName = $_FILES['file']['tmp_name'];
+            $fileType = mime_content_type($fileTmpName);
+
+            if (in_array($fileType, $allowedTypes)) {
+                $isFileUploaded = true;
+                $fileName = $_FILES['file']['name'];
+                
+                $fileData = chunk_split(base64_encode(file_get_contents($fileTmpName)));
+            } else {
+                echo '<script>alert("Invalid file type. Allowed types: JPEG, PNG, GIF.");</script>';
+                return; 
+            }
+        }
+
+       
+        $headers = "From: $fromName <$fromEmail>\r\n";
+        $headers .= "Reply-To: $fromEmail\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: multipart/mixed; boundary=\"PHP-alt\"\r\n";
+
+        
+        $body = "--PHP-alt\r\n";
+        $body .= "Content-Type: text/html;charset=utf-8\r\n";
+        $body .= "Content-Transfer-Encoding: 8bit\r\n\r\n";
+        $body .= "<html><body>" . $emailBody . "</body></html>\r\n";
+
+        
+        if($isFileUploaded) {
+            $body .= "--PHP-alt\r\n";
+            $body .= "Content-Type: $fileType; name=\"$fileName\"\r\n";
+            $body .= "Content-Transfer-Encoding: base64\r\n";
+            $body .= "Content-Disposition: attachment; filename=\"$fileName\"\r\n\r\n";
+            $body .= $fileData . "\r\n";
+        }
+
+        $body .= "--PHP-alt--";
+
+        
+        $success = true;
+
+       
+        foreach ($emailAddresses as $recipient) {
+            if(!mail($recipient, "Email Subject", $body, $headers)) { 
+                $success = false;
+                break; 
+            }
+        }
+        
+        if($success) {
+            echo "<script>alert('Email sent successfully ');</script>";
+        } else {
+            echo "<script>alert('Failed to send email to one or more recipients.');</script>";
+        }
+    }
+}
+?>
+
+
+
+
+
+
+
+
+
+<?php
+$page_name = 'Email';
+include("includes/top_header.php");
+?>
+
+<body>
+    <?php include("includes/header.php"); ?>
+    <div class="container-fluid main-container">
+        <?php include("includes/sidebar.php"); ?>
+        <div class="col-md-10 content">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <a href="javascript:history.go(-1)" title="Back" class="btn btn-default"
+                        style="float: left; padding: 5px; margin-top: -5px; margin-right: 5px; background: #fff; border: none;"><img
+                            src="images/back.png"></a>
+                    Change Email
+                </div>
+                <div class="panel-body">
+                    <form id="emailForm" method="post" enctype="multipart/form-data">
+                        <label for="email">Email Message:</label> <br>
+                        <textarea id="email" name="email" rows="7" cols="100" style="padding: 
+                        10px; border: 1px solid #ccc; border-radius: 5px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5;"></textarea><br> <br>
+
+                        <!-- File input for image upload -->
+                        <input type="file" name="file">
+                        <br> <br>
+                        <button type="submit" name="btn_submit">Send Email</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php include("includes/footer.php"); ?>
+</body>
+</html>
+
+
+====================================================
+
+
+
+<?php
+session_start();
+include_once '../classes/startup.php';
+
+
+$fromEmail = "pushpendra639263@gmail.com"; 
+
+if(isset($_GET['selected_emails'])) {
+    $selectedEmails = urldecode($_GET['selected_emails']);
+    $emailAddresses = explode(',', $selectedEmails);
+}
+
+
+$to = $fromEmail;
+
+if(isset($_POST['btn_submit'])) {
+   
+    $emailBody = isset($_POST['email']) ? $_POST['email'] : '';
+
+   
+    if (empty($emailBody)) {
+        echo '<script>alert("Please enter an email message.");</script>';
+    } else {
+       
+        $subject = "Email Subject"; 
+
+       
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+        // Additional headers including from email
+        $headers .= 'From: Your Name <' . $fromEmail . '>' . "\r\n";
+        // Bcc field mein selected email addresses set karein
+        $headers .= 'Bcc: ' . implode(",", $emailAddresses) . "\r\n";
+
+      
+        $mailSent = mail($to, $subject, $emailBody, $headers);
+
+        
+        if ($mailSent) {
+            echo '<script>alert("Email sent successfully!");</script>';
+        } else {
+            echo '<script>alert("Failed to send email!");</script>';
+        }
+    }
+}
+?>
+
+
+
+================================================
+
+<?php
+session_start();
+include_once '../classes/startup.php';
+
+$fromEmail = "pushpendra639263@gmail.com";
+
+if(isset($_GET['selected_emails'])) {
+    $selectedEmails = urldecode($_GET['selected_emails']);
+    $emailAddresses = explode(',', $selectedEmails);
+}
+
+if(isset($emailAddresses)) {
+    foreach ($emailAddresses as $email) {
+        echo $email . "<br>"; 
+    }
+}
+
+if(isset($_POST['btn_submit'])) {
+    $emailBody = isset($_POST['email']) ? $_POST['email'] : '';
+
+    if (empty($emailBody)) {
+        echo '<script>alert("Please enter an email message.");</script>';
+    } else {
+        // File upload
+        $file = $_FILES['file'];
+        $fileName = $file['name'];
+        $fileTmpName = $file['tmp_name'];
+        $fileSize = $file['size'];
+        $fileError = $file['error'];
+
+        $fileType = mime_content_type($fileTmpName);
+        $allowedTypes = array('image/jpeg', 'image/png', 'image/gif');
+
+        if (in_array($fileType, $allowedTypes)) {
+            // Read image data
+            $fileData = file_get_contents($fileTmpName);
+            $fileData = chunk_split(base64_encode($fileData));
+
+            // Email headers
+            $headers = "From: Your Name <" . $fromEmail . ">\r\n";
+            $headers .= "Reply-To: " . $fromEmail . "\r\n";
+            $headers .= "MIME-Version: 1.0\r\n";
+            $headers .= "Content-Type: multipart/mixed; boundary=\"PHP-alt\"\r\n";
+
+            // Email body
+            $body = "--PHP-alt\r\n";
+            $body .= "Content-Type: text/html;charset=utf-8\r\n";
+            $body .= "Content-Transfer-Encoding: 8bit\r\n\r\n";
+            $body .= "<html><body>" . $emailBody . "<br><img src=\"cid:atlanta-5.jpg\" alt=\"atlanta-5.jpg\"></body></html>\r\n";
+
+            $body .= "--PHP-alt\r\n";
+            $body .= "Content-Type: " . $fileType . "; name=\"" . $fileName . "\"\r\n";
+            $body .= "Content-Transfer-Encoding: base64\r\n";
+            $body .= "Content-Disposition: inline; filename=\"" . $fileName . "\"\r\n";
+            $body .= "Content-ID: <atlanta-5.jpg>\r\n\r\n";
+            $body .= $fileData . "\r\n";
+            $body .= "--PHP-alt--";
+
+            // Sending email
+            if(mail(implode(',', $emailAddresses), "Email Subject", $body, $headers)) { 
+                echo '<script>alert("Email sent successfully!");</script>';
+            } else {
+                echo '<script>alert("Failed to send email.");</script>';
+            }
+        } else {
+            echo '<script>alert("Invalid file type. Allowed types: JPEG, PNG, GIF.");</script>';
+        }
+    }
+}
+?>
+
+
+============================================
+first-part email select
+================================================
+
+<?php
+session_start();
+include_once '../classes/startup.php';
+
+if (!isset($_SESSION[ADMIN_SESSION])) {
+    header('location:index.php');
+    exit;
+}
+
+$core = new Core;
+$mail = new MV_mail; 
+
+if (isset($_REQUEST['did'])) {
+    $did = (int)$_REQUEST['did'];
+    if ($mail->delete($did)) {
+        $alert_data = array(
+            "status" => "Record Deleted",
+            "icon" => "success",
+            "page_url" => "manage_client.php"
+        );
+    } else {
+        $alert_data = array(
+            "status" => "Record Not Deleted",
+            "icon" => "error",
+            "page_url" => "manage_client.php"
+        );
+    }
+    $core->set_sweetalert($alert_data);
+} else if (isset($_REQUEST['homepage'])) {
+    $status = (isset($_REQUEST['status']) && $_REQUEST['status'] == 1) ? 0 : 1;
+    $mail->update_homepage_status($_REQUEST['homepage'], $status);
+    $alert_data = array(
+        "status" => "Mail Updated",
+        "icon" => "success",
+        "page_url" => "manage_client.php"
+    );
+    $core->set_sweetalert($alert_data);
+}
+
+    $mail_data = $mail->index(2);
+    $page_name = 'mail';
+    include("includes/top_header.php");
+?>
+
+<body>
+    <?php include("includes/header.php"); ?>
+    <div class="container-fluid main-container">
+        <?php include("includes/sidebar.php"); ?>
+        <div class="col-md-10 content">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <a href="javascript:history.go(-1)" title="Back" class="btn btn-default"
+                        style="float: left; padding: 5px; margin-top: -5px; margin-right: 5px; background: #fff; border: none;"><img
+                            src="images/back.png"></a>
+                    Mail Page
+                    <a href="manage_client_add.php" title="Add" class="btn btn-default"
+                        style="float: right; padding: 5px; margin-top: -5px; background: #fff; border: none;">Add
+                        New</a>
+                    <!-- <a href="compose_message.php" class="btn btn-danger" style="float: right; margin: -7px 18px;">Compose
+                        Message</a> -->
+                    <button type="button" class="btn btn-primary" style="float: right; margin: -7px 18px;" onclick="composeSelectedEmails()">Compose Selected Emails</button>
+
+                </div>
+                <div class="panel-body">
+                    <form action="" method="post">
+                        <table class="table table-dark">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Sr. No</th>
+                                    <th scope="col">Email</th>
+                                    <th scope="col">Select</th>
+                                    <th scope="col">Edit</th>
+                                    <th scope="col">Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                $cnt = 1;
+                                foreach ($mail_data as $details) {
+                                ?>
+                                <tr>
+                                    <td><?php echo $cnt ?></td>
+                                    <td><?php echo isset($details['email']) ? $details['email'] : '' ?></td>
+                                    <td>
+                                        <input type="checkbox" name="selected_emails[]" value="<?php echo $details['email']; ?>">
+                                    </td>
+                                    <td><a href="manage_client_add.php?eid=<?php echo $details['id'] ?>">
+                                            <span class="fa fa-pencil-square-o"></span></a></td>
+                                    <td><a href="manage_client.php?did=<?php echo $details['id'] ?>"><span
+                                                class="fa fa-trash-o"></span></a></td>
+                                </tr>
+                                <?php
+                                $cnt++;
+                                }
+                                ?>
+                            </tbody>
+                        </table>
+                        <button type="submit" class="btn btn-primary">Compose Selected Emails</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <?php include("includes/footer.php"); ?>
+    </div>
+</body>
+
+<script>
+    function composeSelectedEmails() {
+        var selectedEmails = [];
+        var checkboxes = document.querySelectorAll('input[name="selected_emails[]"]:checked');
+        checkboxes.forEach(function(checkbox) {
+            selectedEmails.push(checkbox.value);
+        }); 
+        var selectedEmailsString = encodeURIComponent(selectedEmails.join(',')); 
+        window.location.href = "compose_message.php?selected_emails=" + selectedEmailsString;
+    }
+</script>
+
+</html>
+
+
+==========================================================================================================
+compose_mail.php
+<?php
+session_start();
+include_once '../classes/startup.php';
+
+// Owner ki email address set karein
+$fromEmail = "pushpendra639263@gmail.com"; // Owner ki email address yahan set karein
+
+if(isset($_GET['selected_emails'])) {
+   
+    $selectedEmails = urldecode($_GET['selected_emails']);
+   
+    $emailAddresses = explode(',', $selectedEmails);
+}
+
+
+if(isset($emailAddresses)) {
+    foreach ($emailAddresses as $email) {
+        echo $email . "<br>";
+    }
+}
+
+
+if(isset($_POST['btn_submit'])) {
+   
+    $emailBody = isset($_POST['email']) ? $_POST['email'] : '';
+
+   
+    if (empty($emailBody)) {
+        echo '<script>alert("Please enter an email message.");</script>';
+    } else {
+       
+        $to = implode(",", $emailAddresses);
+       
+        $subject = "Email Subject"; 
+
+       
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+        // Additional headers including from email
+        $headers .= 'From: Your Name <' . $fromEmail . '>' . "\r\n";
+
+      
+        $mailSent = mail($to, $subject, $emailBody, $headers);
+
+        
+        if ($mailSent) {
+            echo '<script>alert("Email sent successfully!");</script>';
+        } else {
+            echo '<script>alert("Failed to send email!");</script>';
+        }
+    }
+}
+?>
+
+<?php
+$page_name = 'Email';
+include("includes/top_header.php");
+?>
+
+<body>
+    <?php include("includes/header.php"); ?>
+    <div class="container-fluid main-container">
+        <?php include("includes/sidebar.php"); ?>
+        <div class="col-md-10 content">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <a href="javascript:history.go(-1)" title="Back" class="btn btn-default"
+                        style="float: left; padding: 5px; margin-top: -5px; margin-right: 5px; background: #fff; border: none;"><img
+                            src="images/back.png"></a>
+                    Change Email
+                </div>
+                <div class="panel-body">
+                    <form id="emailForm" method="post" enctype="multipart/form-data">
+                        <label for="email">Email Message:</label> <br>
+                        <textarea id="email" name="email" rows="7" cols="100" style="padding: 
+                        10px; border: 1px solid #ccc; border-radius: 5px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5;"></textarea><br> <br>
+
+                        <input type="file" name="file">
+                        <br> <br>
+                        <button type="submit" name="btn_submit">Send Email</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php include("includes/footer.php"); ?>
+</body>
+</html>
+============================================================================
+<?php
+
+session_start();
+include_once '../classes/startup.php';
+
+
+if(isset($_GET['selected_emails'])) {
+    $selectedEmails = urldecode($_GET['selected_emails']);
+    
+    $emailAddresses = explode(',', $selectedEmails);
+   
+}
+
+if (isset($_POST['btn_submit'])) {
+
+    $emailBody = isset($_POST['email']) ? $_POST['email'] : '';
+    if (empty($emailBody)) {
+        echo '<script>alert("Please enter an email message.");</script>';
+    } else {
+        $fromEmail = "pushpendra639263@gmail.com"; 
+        $to = implode(",", $emailAddresses);
+        $subject = "Email Subject";
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+        $headers .= 'From: Your Name <your_email@example.com>' . "\r\n";
+        $mailSent = mail($to, $subject, $emailBody, $headers);
+        if ($mailSent) {
+            echo '<script>alert("Email sent successfully!");</script>';
+        } else {
+            echo '<script>alert("Failed to send email!");</script>';
+        }
+    }
+}
+
+?>
+
+<?php
+$page_name = 'Email';
+include("includes/top_header.php");
+?>
+
+<body>
+    <?php include("includes/header.php"); ?>
+    <div class="container-fluid main-container">
+        <?php include("includes/sidebar.php"); ?>
+        <div class="col-md-10 content">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <a href="javascript:history.go(-1)" title="Back" class="btn btn-default"
+                        style="float: left; padding: 5px; margin-top: -5px; margin-right: 5px; background: #fff; border: none;"><img
+                            src="images/back.png"></a>
+                    Change Email
+                </div>
+
+                <div class="panel-body">
+                 <form id="emailForm" method="post">
+                        <label for="email">Email Message:</label>
+                        <textarea id="email" name="email" rows="5" cols="50"></textarea>
+                        <br>
+                        <button type="submit" name="btn_submit">Send Email</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php include("includes/footer.php"); ?>
+</body>
+
+</html>
+======================================================================
+:- mail complete data 
+===============================================================================================
+
+csv-file compelete
+=======================================================
+<?php
+			$hostname='localhost';
+			$username='foursser_fours';
+			$password='^8*GP[3Ft}tO';
+			$db_name='foursser_fours';
+			
+	$con = mysqli_connect($hostname,$username,$password,$db_name);
+
+?>
+<!--**********Calander start*********-->
+<script src="cal/js/jquery-1.9.1.js" type="text/javascript"></script>
+<script src="cal/js/jquery-ui.js" type="text/javascript"></script>
+<link href="cal/css/jquery-ui.css" type="text/css" rel="stylesheet">
+<style type="text/css">
+	.ui-datepicker-calendar { display: none; }
+</style> 
+<script type="text/javascript">//&lt;![CDATA[ 
+$(window).load(function(){
+$(function() {
+	$('.monthYearPicker').datepicker({
+		changeMonth: true,
+		changeYear: true,
+		showButtonPanel: true,
+		dateFormat: 'MM - yy'
+	}).focus(function() {
+		var thisCalendar = $(this);
+		$('.ui-datepicker-calendar').detach();
+		$('.ui-datepicker-close').click(function() {
+var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+thisCalendar.datepicker('setDate', new Date(year, month, 1));
+		});
+	});
+});
+});//]]&gt;  
+</script>
+
+<!--**********Calander end*********-->
+<script type="text/javascript">
+/*
+	function frmval()
+	{
+		var phtitle = document.form1.title.value;
+		if(phtitle=="")
+		{
+			alert("Please fill the Title");
+			form1.title.focus();
+			return false;
+		}
+	}
+*/	
+function ChangeStatus(proid,prosts)
+	{
+		document.location.href = "index.php?task=service&prod_id_4_status="+proid+"&psts="+prosts;
+	}
+//-->
+</script>
+
+<?php
+error_reporting(0); ini_set('display_errors', 'On');
+// $mntdt = mysql_real_escape_string($_REQUEST['mntdt']);
+# Uploading Image
+// if(isset($_POST['btn_submit'])){
+//     if(isset($_FILES['csvtest']) && $_FILES['csvtest']['size'] > 0){
+// 	$file = $_FILES['csvtest']['tmp_name'];
+// 	$handle = fopen($file,"r");
+//     while($data = fgetcsv($handle,10000,",","'")){
+//         if($data[0] !== false){
+//             mysql_query("INSERT INTO contact_details (driver_name, father_name, bank_name, bank_ac_no, rate_of_wages, wages, esi_no, esi_challan_dt,epf_no, epf_challan_dt, mntdt, date, status) VALUES('".addslashes($data[0])."','".addslashes($data[1])."','".addslashes($data[2])."','".addslashes($data[3])."','".addslashes($data[4])."','".addslashes($data[5])."','".addslashes($data[6])."','".addslashes($data[7])."','".addslashes($data[8])."','".addslashes($data[9])."', '".addslashes($mntdt)."', now(), '1')") or die(mysql_error());
+//         }
+//     }
+// 	header("Location:index.php?task=service&ok=1&success=1");
+// 	exit;
+// } }
+
+  if(isset($_POST['btn_submit'])){
+    if(isset($_FILES['file']['name']) && $_FILES['file']['error'] == 0){
+        $csvmimes = array('text/x-comma-separated-values','text/comma-separated-values', 'application/octet-stream','text/csv','application/csv','application/excel','application/vnd.msexcel','text/plain');
+        $filename = explode(".", $_FILES['file']['name']);
+        if(in_array($_FILES['file']['type'], $csvmimes)){
+            if(strtolower(end($filename)) == "csv"){
+                $handle = fopen($_FILES['file']['tmp_name'], "r");
+                if($handle !== FALSE) {
+                    fgetcsv($handle);
+                    $stmt = $con->prepare("INSERT INTO `contact_details`(`driver_name`, `father_name`, `bank_name`, `bank_ac_no`, `rate_of_wages`, `wages`, `esi_no`, `esi_challan_dt`, `epf_no`, `epf_challan_dt`, `mntdt`, `status`, `date`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+                   
+                    $stmt->bind_param("sssssssssssi", $driver_name, $father_name, $bank_name, $bank_ac_no, $rate_of_wages, $wages, $esi_no, $esi_challan_dt, $epf_no, $epf_challan_dt, $mntdt, $status);
+                    
+                    $status = 1; 
+                    
+                        while($data = fgetcsv($handle)){
+                        $driver_name = $data[0];
+                        $father_name = $data[1];
+                        $bank_name = $data[2];
+                        $bank_ac_no = $data[3];
+                        $rate_of_wages = $data[4];
+                        $wages = $data[5];
+                        $esi_no = $data[6];
+                        $esi_challan_dt = $data[7];
+                        $epf_no = $data[8];
+                        $epf_challan_dt = $data[9];
+                        $mntdt = $data[10];
+                        
+                        // Execute the prepared statement
+                        $stmt->execute();
+                    }
+                    
+                    fclose($handle);
+                    echo "CSV file has been imported successfully.";
+                } else {
+                    echo "Error: Unable to open CSV file.";
+                }
+            } else {
+                echo "Error: Please upload a CSV file.";
+            }
+        } else {
+            echo "Error: Invalid file type. Please upload a CSV file.";
+        }
+    } else {
+        echo "Error: " . $_FILES['file']['error'];
+    }
+} 
+
+
+
+
+
+# Uploading Image//
+
+	#Get Vars
+	$cid = mysql_escape_string($_REQUEST['cid']);
+	$driver_name = mysql_escape_string($_REQUEST['driver_name']);
+	$father_name = mysql_escape_string($_REQUEST['father_name']);
+	$bank_name = mysql_escape_string($_REQUEST['bank_name']);
+	$bank_ac_no = mysql_escape_string($_REQUEST['bank_ac_no']);
+	$rate_of_wages = mysql_escape_string($_REQUEST['rate_of_wages']);
+	$wages = mysql_escape_string($_REQUEST['wages']);
+	$esi_no = mysql_escape_string($_REQUEST['esi_no']);	
+	$esi_challan_dt = mysql_escape_string($_REQUEST['esi_challan_dt']);
+	$epf_no = mysql_escape_string($_REQUEST['epf_no']);
+	$epf_challan_dt = mysql_escape_string($_REQUEST['epf_challan_dt']);
+	if(isset($_REQUEST['submit']) && $_REQUEST['submit']!="" && $_REQUEST['submit'] == "SAVE")
+	{
+		if($cid>0)
+		{
+			//echo "update contact_details set driver_name='$driver_name', father_name='$father_name', bank_name='$bank_name', bank_ac_no='$bank_ac_no', rate_of_wages='$rate_of_wages', wages='$wages',esi_no='$esi_no',esi_challan_dt='$esi_challan_dt' where id='".$cid."'";exit;
+			$sqlqr=mysql_query("update contact_details set driver_name='$driver_name', father_name='$father_name', bank_name='$bank_name', bank_ac_no='$bank_ac_no', rate_of_wages='$rate_of_wages', wages='$wages',esi_no='$esi_no',esi_challan_dt='$esi_challan_dt',epf_no='$epf_no',epf_challan_dt='$epf_challan_dt', mntdt='$mntdt' where id='".$cid."'");
+		}
+		header("Location:index.php?task=service&ok=1");exit;
+	}
+	
+		if(isset($_REQUEST['delid']))
+	{
+			$sql_chk = "select * from contact_details where id= '". $_REQUEST['delid'] ."'";
+			$rs_chk = mysql_query($sql_chk) or die('ERROR:' . mysql_error());
+			if(mysql_num_rows($rs_chk)>0)
+			{
+				$row_chk = mysql_fetch_array($rs_chk);
+				$sqldel = "delete from contact_details where id= '". $_REQUEST['delid'] ."'";
+				$rsdel = mysql_query($sqldel) or die('ERROR:' . mysql_error());
+			} 
+?>
+			<script>window.location='index.php?task=service&ok=3';</script>
+<?php
+	}
+	
+		if(isset($_REQUEST['delall']) && $_REQUEST['delall']==='delokk')
+	{
+			$sql_chk = "select * from contact_details";
+			$rs_chk = mysql_query($sql_chk) or die('ERROR:' . mysql_error());
+			if(mysql_num_rows($rs_chk)>0)
+			{
+				$row_chk = mysql_fetch_array($rs_chk);
+				$sqldel = "delete from contact_details";
+				$rsdel = mysql_query($sqldel) or die('ERROR:' . mysql_error());
+			}
+?>
+			<script>window.location='index.php?task=service&ok=3';</script>
+<?php
+	}
+	
+	$sqlcat = "select id from contact_details";
+	$rscat = mysql_query($sqlcat) or die('ERROR:' . mysql_error());
+	# Change status
+	if(isset($_REQUEST['prod_id_4_status']))
+	{
+		if($_REQUEST['psts']==0)
+		{
+			$updatedsts = 1;
+		}
+		else if($_REQUEST['psts']==1)
+		{
+			$updatedsts = 0;
+		}
+		$sqlfeatured = "update contact_details set status='". $updatedsts ."' where id= '". $_REQUEST['prod_id_4_status'] ."'";
+		$rsfeatured = mysql_query($sqlfeatured) or die('ERROR:' . mysql_error());
+?>
+			<script>window.location='index.php?task=service';</script>
+<?php
+	}
+# Change Status //
+?>
+ <script>
+ function deleteTest(uid)
+ {
+	 //alert(uid);
+ 	if(confirm("Are you sure you want to delete."))
+	document.location = "index.php?task=service&delid="+uid;	
+ }
+ </script>
+ <script>
+ function deleteAll()
+ {
+	 //alert(uid);
+ 	if(confirm("Are you sure you want to delete all!"))
+	document.location = "index.php?task=service&delall=delokk";	
+ }
+ </script>
+
+	<table width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr> <a href="#" onclick="deleteAll();" class="delicon">
+		    <i class="fa fa-trash fa-2x" aria-hidden="true">
+		        
+		    </i>Delete All
+</a></td>
+            
+		</tr>
+        
+		<tr>
+       
+			<td>
+			<?php
+			if($_REQUEST['ok']==1)
+			{
+				echo '<div style="font-weight:bold;text-align:center;color:#ec0000;">Data Updated Sucessfully</div>';
+				if (!empty($_GET['success'])) { echo '<div style="color:#090; font-size:15px;text-align:center;"><b>Your Client & Employees detail file has been imported.</b></div><br>'; }
+			}
+			?>
+			<?php
+			if($_REQUEST['ok']==2)
+			{
+				echo '<div style="font-weight:bold;text-align:center;color:#ec0000;">Data Not added. You have reached  maximum limit of adding category</div>';
+			}
+			?>
+			<?php
+			if($_REQUEST['ok']==3)
+			{
+				echo '<div style="font-weight:bold;text-align:center;color:#ec0000;">Data Deleted Sucessfully</div>';
+			}
+			?>
+			</td>
+            
+			
+		</tr>
+		<tr>
+			<td class="table">
+				<table width="100%" border="0" cellspacing="0" cellpadding="0">	
+					<tr align="left" class="tabletop">
+                    	<td width="4%" height="25"><strong>Sr No</strong></td>
+                    	<td width="12%" height="25"><strong>Driver Name</strong></td>
+                    	<td width="10%" height="25"><strong>Father Name</strong></td>
+                        <td width="10%"><strong>Bank Name</strong></td>
+                        <td width="8%" height="25"><strong>BANK A/C NO.</strong></td>
+                    	<td width="7%" height="25"><strong>RATE OF WAGES</strong></td>
+                    	<td width="4%" height="25"><strong>WAGES</strong></td>
+                        <td width="4%"><strong>ESI NO.</strong></td>
+                        <td width="11%"><strong>ESI CHALLAN DATE</strong></td>
+                        <td width="6%"><strong>EPF NO.</strong></td>
+                        <td width="9%"><strong>EPF CHALLAN DATE</strong></td>
+                        <td width="4%"><strong>Status</strong></td>
+                        <td width="11%" align="center"><strong>Edit || Delete</strong></td>
+					</tr>
+<?php
+		$rs_cat=mysql_query("select * from contact_details order by id asc");
+		$count = 0;
+		while($row_cat = mysql_fetch_array($rs_cat))
+		{	
+			$count ++;
+			$prodcatid = $row_cat['id'];
+			$prod_sts = $row_cat['status'];
+			$driver_name = $row_cat['driver_name'];			
+			$father_name = $row_cat['father_name'];
+			$bank_name = $row_cat['bank_name'];
+			$bank_ac_no = $row_cat['bank_ac_no'];			
+			$rate_of_wages = $row_cat['rate_of_wages'];
+			$wages = $row_cat['wages'];
+			$esi_no = $row_cat['esi_no'];			
+			$esi_challan_dt = $row_cat['esi_challan_dt'];
+			$epf_no = $row_cat['epf_no'];			
+			$epf_challan_dt = $row_cat['epf_challan_dt'];
+			
+			if($prod_sts==0)
+				{
+					$status_img = '<img src="images/cross.png" width="24" alt="Inactive" title="Inactive">';
+				}
+				else
+				{
+					$status_img = '<img src="images/right.png" width="24" alt="Active" title="Active">';
+				}
+			
+			
+	   ?>
+		        <tr class="normaltext">
+                	<td align="left" valign="top" class="sub_head1" style="text-align:justify;"><?php echo $count;?></td>
+					<td align="left" valign="top" class="sub_head1"><?php echo $driver_name; ?></td>
+				  	<td align="left" valign="top" class="sub_head1"><?php echo $father_name; ?></td>
+                    <td align="left" valign="top" class="sub_head1"><?php echo $bank_name; ?></td>
+                    <td align="left" valign="top" class="sub_head1" style="text-align:justify;"><?php echo $bank_ac_no;?></td>
+					<td align="left" valign="top" class="sub_head1"><?php echo $rate_of_wages; ?></td>
+				  	<td align="left" valign="top" class="sub_head1"><?php echo $wages; ?></td>
+                    <td align="center" valign="top" class="sub_head1"><?php echo $esi_no; ?></td>
+                    <td align="center" valign="top"  class="sub_head1"><?php echo $esi_challan_dt; ?></td>
+                    <td align="center" valign="top" class="sub_head1"><?php echo $epf_no; ?></td>
+                    <td align="center" valign="top"  class="sub_head1"><?php echo $epf_challan_dt; ?></td>
+                     <td align="center" valign="top" class="sub_head1"><a  href="#" onclick="ChangeStatus(<?php echo $row_cat['id']; ?>,<?php echo $prod_sts; ?>)" class="btm"><?php echo $status_img; ?></a></td>                    
+                   <td align="center" valign="top">
+						<a  href="index.php?task=service&cid=<?php echo $row_cat['id']; ?>" class="btm"><strong><img src="images/edit.png" title="Edit" height="25" width="25"></strong></a> &nbsp; <a href="#" onclick="deleteTest('<?php echo $row_cat['id']; ?>');" class="btm"><strong><img src="images/delete.png" title="Delete" height="25" width="25"></strong></a>
+					</td>
+				</tr>
+<?php
+		}
+		
+?>
+	      </table>
+		</td>
+	</tr>
+    <tr>
+		<td>&nbsp;</td>
+	</tr>
+     
+	
+    
+<?php
+		if($cid!="" && $cid>0)
+		{
+?>
+    <tr><td><form id="form1" name="form1" method="post" enctype="multipart/form-data action="">
+				<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<?php
+			if(isset($_REQUEST['cid']))
+			{
+				$rs=mysql_query("select * from contact_details where id='". $cid ."'");
+				$row = mysql_fetch_array($rs);
+				$driver_name = stripslashes($row['driver_name']);
+				$father_name = stripslashes($row['father_name']);
+				$bank_name = stripslashes($row['bank_name']);
+				$bank_ac_no = stripslashes($row['bank_ac_no']);
+				$rate_of_wages = stripslashes($row['rate_of_wages']);
+				$wages = stripslashes($row['wages']);
+				$esi_no = stripslashes($row['esi_no']);
+				$esi_challan_dt = stripslashes($row['esi_challan_dt']);
+				$epf_no = stripslashes($row['epf_no']);
+				$epf_challan_dt = stripslashes($row['epf_challan_dt']);
+				$mntdt = stripslashes($row['mntdt']);
+				
+			}
+			/*else
+			{
+				$driver_name = '';
+				$father_name = '';
+				$bank_name = '';
+				$bank_ac_no = '';
+				$rate_of_wages = '';
+				$wages = '';
+				$esi_no = '';
+				$esi_challan_dt = '';
+			}*/
+		 ?>
+					<tr>
+			            <td height="25" colspan="2" class="table_header"><strong>Edit</strong></td>
+					</tr>
+					<tr>
+						<td width="20%" height="40"  class="normaltext"><strong>DRIVER NAME</strong></td>
+						<td width="80%">
+							<label>
+								<input name="driver_name" type="text" id="driver_name"  value="<?php echo $driver_name; ?>" size="85" class="textbox"/>
+							</label>
+						</td>
+					</tr>
+                    <tr>
+						<td valign="top" class="normaltext" colspan="2">&nbsp;</td>
+					</tr>
+                    
+                    <tr>
+						<td width="20%" height="40"  class="normaltext"><strong>FATHER NAME</strong></td>
+						<td width="80%">
+							<label>
+								<input name="father_name" type="text" id="father_name"  value="<?php echo $father_name; ?>" size="85" class="textbox"/>
+							</label>
+						</td>
+					</tr>
+                    <tr>
+						<td valign="top" class="normaltext" colspan="2">&nbsp;</td>
+					</tr>
+                    
+                    <tr>
+						<td width="20%" height="40"  class="normaltext"><strong>BANK NAME</strong></td>
+						<td width="80%">
+							<label>
+								<input name="bank_name" type="text" id="bank_name"  value="<?php echo $bank_name; ?>" size="85" class="textbox"/>
+							</label>
+						</td>
+					</tr>
+                    
+                    <tr>
+						<td valign="top" class="normaltext" colspan="2">&nbsp;</td>
+					</tr>
+                    <tr>
+						<td width="20%" height="40"  class="normaltext"><strong>BANK A/C NO.</strong></td>
+						<td width="80%">
+                      <label>
+                         <input name="bank_ac_no" id="bank_ac_no" value="<?php echo $bank_ac_no ; ?>" size="85" class="textbox"/>
+                      </label>
+						</td>
+					</tr>
+                     <tr>
+						<td valign="top" class="normaltext" colspan="2">&nbsp;</td>
+					</tr>
+                    <tr>
+						<td width="20%" height="40"  class="normaltext"><strong>RATE OF WAGES.</strong></td>
+						<td width="80%">
+                      <label>
+                         <input name="rate_of_wages" id="rate_of_wages" value="<?php echo $rate_of_wages ; ?>" size="85" class="textbox"/>
+                      </label>
+						</td>
+					</tr>
+                     <tr>
+						<td valign="top" class="normaltext" colspan="2">&nbsp;</td>
+					</tr>
+                    <tr>
+						<td width="20%" height="40"  class="normaltext"><strong>WAGES</strong></td>
+						<td width="80%">
+                      <label>
+                         <input name="wages" id="wages" value="<?php echo $wages ; ?>" size="85" class="textbox"/>
+                      </label>
+						</td>
+					</tr>
+                     <tr>
+						<td valign="top" class="normaltext" colspan="2">&nbsp;</td>
+					</tr>
+                    <tr>
+						<td width="20%" height="40"  class="normaltext"><strong>ESI NO.</strong></td>
+						<td width="80%">
+                      <label>
+                         <input name="esi_no" id="esi_no" value="<?php echo $esi_no ; ?>" size="85" class="textbox"/>
+                      </label>
+						</td>
+					</tr>
+                     <tr>
+						<td valign="top" class="normaltext" colspan="2">&nbsp;</td>
+					</tr>
+                    <tr>
+						<td width="20%" height="40"  class="normaltext"><strong>ESI CHALLAN DATE</strong></td>
+						<td width="80%">
+                      <label>
+                         <input name="esi_challan_dt" id="esi_challan_dt" value="<?php echo $esi_challan_dt ; ?>" size="85" class="textbox"/>
+                      </label>
+						</td>
+					</tr>
+                    
+                   
+					<tr>
+						<td valign="top" class="normaltext" colspan="2">&nbsp;</td>
+					</tr>
+                    <tr>
+						<td width="20%" height="40"  class="normaltext"><strong>EPF NO.</strong></td>
+						<td width="80%">
+                      <label>
+                         <input name="epf_no" id="epf_no" value="<?php echo $epf_no ; ?>" size="85" class="textbox"/>
+                      </label>
+						</td>
+					</tr>
+                     <tr>
+						<td valign="top" class="normaltext" colspan="2">&nbsp;</td>
+					</tr>
+                    <tr>
+						<td width="20%" height="40"  class="normaltext"><strong>EPF CHALLAN DATE</strong></td>
+						<td width="80%">
+                      <label>
+                         <input name="epf_challan_dt" id="epf_challan_dt" value="<?php echo $epf_challan_dt ; ?>" size="85" class="textbox"/>
+                      </label>
+						</td>
+					</tr>
+                    
+                   
+					<?php /*?><tr>
+						<td valign="top" class="normaltext" colspan="2">&nbsp;</td>
+					</tr>
+                    <tr>
+						<td width="20%" height="40"  class="normaltext"><strong>Month/Year</strong></td>
+						<td width="80%">
+                      <label>
+                         <input name="mntdt" type="text" id="mntdt"  value="<?php echo $mntdt; ?>" size="35" class="monthYearPicker"/>
+                      </label>
+						</td>
+					</tr><?php */?>
+                    
+                   
+					<tr>
+						<td valign="top" class="normaltext" colspan="2">&nbsp;</td>
+					</tr>
+					
+					<tr>
+						<td height="40"><input name="mode" type="hidden" id="mode" /></td>
+						<td align="left" >
+							<label>
+								<input type="submit" name="submit" value="SAVE" class="btn_grey" onmouseout="this.className='btn_grey'" onmouseover="this.className='btn_grey_hov'"/>
+							</label>
+						</td>
+					</tr>
+				</table>
+			</form></td></tr>
+	<?php
+    }else{
+    ?>
+	<tr>
+		<td>&nbsp;</td>
+	</tr>
+
+	<tr>
+		<td>
+        <form action="" method="post" enctype="multipart/form-data" name="form" id="form">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0"> 
+        
+        <tr>
+			<td>
+          Choose your file <span style="color:#F00;"><b>(CSV Format Only)</b></span>: <br /> 
+          <input name="file" type="file" accept=".csv"  value="import" id="csvtest" /> 
+          </td>
+		</tr>
+    
+         	<tr>
+            <td width="20%" height="40"  class="normaltext"><strong>Month Details:</strong></td>
+            <td width="80%">
+                
+                <label>
+                    <input name="mntdt" type="text" id="mntdt"  value="<?php echo $mntdt; ?>" size="35" class="monthYearPicker"/>
+                </label>
+            </td>
+     </tr>
+    <tr><td valign="top" class="normaltext" colspan="2">&nbsp;</td></tr>
+    
+    <tr><td>
+    <input type="submit" name="btn_submit" value="Submit" class="btn_grey" /> 
+    </td></tr>
+    </table>
+        </form>
+        </td>
+	</tr>
+	
+	<?php 
+	}
+	?>
+        
+</table>
+=====================================================================
+All selct image delete on time 
+====================================================================
+<?php
+include_once '../classes/startup.php';
+if (!isset($_SESSION[ADMIN_SESSION])) {
+    header('location:index.php');
+}
+$core = new Core;
+$gallery = new MV_Gallery;
+
+if (isset($_REQUEST['did'])) {
+    $did = (int)$_REQUEST['did'];
+    if ($gallery->delete($did)) {
+        $alert_data = array(
+            "status" => "Record Deleted",
+            "icon" => "success",
+            "page_url" => "manage_gallery.php"
+        );
+    } else {
+        $alert_data = array(
+            "status" => "Record Not Deleted",
+            "icon" => "error",
+            "page_url" => "manage_gallery.php"
+        );
+    }
+    $core->set_sweetalert($alert_data);
+} else if (isset($_REQUEST['homepage'])) {
+    $status = (isset($_REQUEST['status']) && $_REQUEST['status'] == 1) ? 0 : 1;
+    $gallery->update_homepage_status($_REQUEST['homepage'], $status);
+    $alert_data = array(
+        "status" => "gallery Updated",
+        "icon" => "success",
+        "page_url" => "manage_gallery.php"
+    );
+    $core->set_sweetalert($alert_data);
+}
+
+if (isset($_GET['delete_selected']) && !empty($_GET['items'])) {
+    $itemsToDelete = explode(',', $_GET['items']);
+    foreach ($itemsToDelete as $itemId) {
+        $gallery->delete((int)$itemId);
+    }
+    
+}
+
+
+
+$gallery_data = $gallery->index(2);
+
+
+
+
+$page_name = 'Gallery';
+
+include("includes/top_header.php");
+?>
+<script>
+    function deleteSelectedItems() {
+    var selectedItems = document.querySelectorAll('input[name="selected_items[]"]:checked');
+    if (selectedItems.length === 0) {
+        alert("Please select at least one item to delete.");
+        return;
+    }
+    
+    var selectedValues = Array.from(selectedItems).map(item => item.value).join(',');
+    window.location.href = "manage_gallery.php?delete_selected=1&items=" + selectedValues;
+}
+</script>
+<body>
+    <?php include("includes/header.php"); ?>
+    <div class="container-fluid main-container">
+        <?php include("includes/sidebar.php"); ?>
+        <div class="col-md-10 content">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <a href="javascript:history.go(-1)" title="Back" class="btn btn-default" style="float: left; padding: 5px; margin-top: -5px; margin-right: 5px; background: #fff; border: none;"><img src="images/back.png"></a>
+                    Gallery Page
+                    <a href="manage_gallery_add.php" title="Add" class="btn btn-default" style="float: right; padding: 5px; margin-top: -5px; background: #fff; border: none;">Add New</a>
+                    
+                    <a href="javascript:void(0);" onclick="deleteSelectedItems()" class="btn btn-danger" style="float: right; margin: -7px 18px;">Delete Selected</a>
+                </div>
+
+                <div class="panel-body">
+                    <table class="table table-dark">
+                        <thead>
+                            <tr>
+                                <th scope="col">Sr. No</th>                  
+                              
+                                <th scope="col">Gallery-Image</th>
+                                <th scope="col">Action</th>
+                                <th scope="col">Click</th>
+                                <th scope="col">Edit</th>
+                                <th scope="col">Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $cnt = 1;
+                            foreach ($gallery_data as $details) {
+                            ?>
+                                <tr>
+                                    <td><?php echo $cnt ?></td>
+                                    
+
+                                   
+
+                                    <td>
+                                        <img src="<?php echo isset($details['photourl']) ? '../' . $details['photourl'] : 'images/noimage.png' ?>" width="60" style="border-radius:10%;" alt="">
+                                    </td>
+
+
+                                    <?php
+                                    if ($details['homepage'] == 1) {
+                                    ?>
+                                        <td>
+                                            <a href="manage_gallery.php?homepage=<?php echo $details['id'] . '&status=' . $details['homepage'] ?>"><span class="fa fa-check-circle" style="margin-right:1rem; color:green;"></span>Show On Homepage</a>
+                                        </td>
+                                    <?php
+                                    } else {
+                                    ?>
+                                        <td>
+                                            <a href="manage_gallery.php?homepage=<?php echo $details['id'] . '&status=' . $details['homepage'] ?>"><span class="fa fa-times-circle" style="margin-right:1rem; color:red;"></span>Show On Homepage</a>
+                                        </td>
+                                    <?php
+                                    }
+                                    ?>
+
+                                 <td>
+                                <input type="checkbox" name="selected_items[]" value="<?php echo $details['id']; ?>">
+
+                                </td>
+                                    <td><a href="manage_gallery_add.php?eid=<?php echo $details['id'] ?>"><span class="fa fa-pencil-square-o"></span></a></td>
+                                    <td><a href="manage_gallery.php?did=<?php echo $details['id'] ?>"><span class="fa fa-trash-o"></span></a></td>
+
+                                </tr>
+                            <?php
+                                $cnt++;
+                            }
+                            ?>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+
+        <?php include("includes/footer.php"); ?>
+    </div>
+
+</body>
+
+</html>
